@@ -104,7 +104,8 @@ internet-time-capsule/
 │   │   ├── en.ts / id.ts       UI strings per language
 │   │   ├── content.ts          localised site/era/collection content
 │   │   ├── comparisons.ts      localised Then vs Now pairings
-│   │   ├── artifacts.ts        localised blurbs, notes & record labels
+│   │   ├── artifacts.ts        merges records/*, applies translation, labels
+│   │   ├── records/            full Indonesian record text, one file per era
 │   │   └── LanguageContext.tsx provider, hook, persistence
 │   ├── data/
 │   │   ├── types.ts            data contracts and the Commons URL helper
@@ -226,15 +227,16 @@ Translated content lives in **`src/i18n/`**:
 | `en.ts` / `id.ts` | Every UI string: navigation, buttons, headings, placeholders, empty states, About, footer, error panel. |
 | `content.ts` | Site tagline/intro, era titles/summaries/markers and collection names/notes. |
 | `comparisons.ts` | The six Then vs Now pairings, fully translated. |
-| `artifacts.ts` | Indonesian blurb + curatorial note for all 34 records, plus impact/fact label translations. |
+| `artifacts.ts` | Merges the era files and applies the translation via `localizeArtifact`, plus impact/fact label translations. |
+| `records/*.ts` | Full Indonesian text for all 34 records — blurb, curatorial note, story, impact, facts, image alt/caption — one file per era. |
 | `LanguageContext.tsx` | Provider, `useLanguage()` hook, persistence and document-shell sync. |
 
-Deliberate scope decision: the long-form record **stories, impact prose and fact
-values stay in English** (the language of their cited sources). In Indonesian mode
-the reader says so plainly, while summaries, labels and navigation are translated.
-Search covers both languages. To translate a record fully later, extend
-`artifactTextId` — `localizeArtifact` already merges overrides — and the validator
-checks parity automatically.
+Deliberate scope decision: record **sources stay in English** (the language of
+their cited material), as do proper nouns and external titles. Everything else —
+summaries, stories, impact prose, fact values, image text, labels, navigation —
+is fully translated, and search covers both languages. The validator enforces
+per-record parity (story/impact/fact counts, image-override presence), so adding
+an English paragraph or fact without its Indonesian counterpart fails the build.
 
 ---
 

@@ -144,8 +144,7 @@ export const id: Strings = {
     noPrev: "Tidak ada arsip sebelumnya",
     nextRecord: (title) => `Arsip berikutnya: ${title}`,
     noNext: "Tidak ada arsip berikutnya",
-    storyLanguageNote:
-      "Kisah lengkap arsip ini ditulis dalam bahasa Inggris, bahasa asli sumber-sumbernya. Ringkasan, label, dan navigasi telah diterjemahkan ke bahasa Indonesia.",
+    storyLanguageNote: null,
   },
   compare: {
     section: "Bagian 04 — Dulu vs kini",

@@ -1,6 +1,21 @@
 /** Supported interface languages. */
 export type Lang = "id" | "en";
 
+/**
+ * Full Indonesian version of one catalogue record. Structural fields (id,
+ * dates, image file, sources) always come from the English source record —
+ * only prose is mirrored here, paragraph for paragraph.
+ */
+export interface ArtifactIdText {
+  blurb: string;
+  significance: string;
+  story: string[];
+  impact: { label: string; text: string }[];
+  facts: { label: string; value: string }[];
+  /** Required when the source record has an image; omitted otherwise. */
+  image?: { alt: string; caption: string };
+}
+
 export interface NavItem {
   id: string;
   label: string;

@@ -67,8 +67,11 @@ const matchesQuery = (a: Artifact, q: string, lang: Lang = "en") => {
     a.significance,
     translated?.significance ?? "",
     a.story.join(" "),
+    translated?.story.join(" ") ?? "",
     ...a.impact.map((i) => i.text),
+    ...(translated?.impact.map((i) => i.text) ?? []),
     ...a.facts.map((f) => `${f.label} ${f.value}`),
+    ...(translated?.facts.map((f) => `${f.label} ${f.value}`) ?? []),
   ]
     .join(" ")
     .toLowerCase();

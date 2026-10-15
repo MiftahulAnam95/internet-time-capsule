@@ -118,15 +118,37 @@ comparisons.forEach((pair, i) => {
 for (const a of artifacts) {
   const text = artifactTextId[a.id];
   if (!text) {
-    fail(`${a.id}: missing Indonesian summary (blurb + significance)`);
-  } else {
-    if (!text.blurb.trim()) fail(`${a.id}: empty Indonesian blurb`);
-    if (!text.significance.trim()) fail(`${a.id}: empty Indonesian curatorial note`);
-    if (text.blurb === a.blurb) warn(`${a.id}: Indonesian blurb is identical to the English one`);
+    fail(`${a.id}: missing Indonesian record text`);
+    continue;
+  }
+  if (!text.blurb.trim()) fail(`${a.id}: empty Indonesian blurb`);
+  if (!text.significance.trim()) fail(`${a.id}: empty Indonesian curatorial note`);
+  if (text.blurb === a.blurb) warn(`${a.id}: Indonesian blurb is identical to the English one`);
+  if (text.story.length !== a.story.length) {
+    fail(`${a.id}: Indonesian story has ${text.story.length} paragraphs, expected ${a.story.length}`);
+  }
+  if (text.impact.length !== a.impact.length) {
+    fail(`${a.id}: Indonesian impact has ${text.impact.length} rows, expected ${a.impact.length}`);
+  }
+  if (text.facts.length !== a.facts.length) {
+    fail(`${a.id}: Indonesian facts have ${text.facts.length} rows, expected ${a.facts.length}`);
+  }
+  if (text.story.some((p) => !p.trim())) fail(`${a.id}: empty Indonesian story paragraph`);
+  if (text.impact.some((i) => !i.label.trim() || !i.text.trim())) {
+    fail(`${a.id}: incomplete Indonesian impact row`);
+  }
+  if (text.facts.some((f) => !f.label.trim() || !f.value.trim())) {
+    fail(`${a.id}: incomplete Indonesian fact row`);
+  }
+  if (!!text.image !== !!a.image) {
+    fail(`${a.id}: Indonesian image override ${text.image ? "exists" : "missing"} but English record ${a.image ? "has" : "has no"} image`);
+  }
+  if (text.image && (!text.image.alt.trim() || !text.image.caption.trim())) {
+    fail(`${a.id}: incomplete Indonesian image text`);
   }
 }
 for (const key of Object.keys(artifactTextId)) {
-  if (!ids.has(key)) fail(`Indonesian summary for unknown record: ${key}`);
+  if (!ids.has(key)) fail(`Indonesian text for unknown record: ${key}`);
 }
 
 if (idComparisonSource.length !== comparisons.length) {
