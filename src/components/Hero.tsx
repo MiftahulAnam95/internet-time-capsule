@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { eras, siteConfig, type EraId } from "@/config";
+import { localizedEras, localizedSite, useLanguage } from "@/i18n";
+import type { EraId } from "@/config";
 import { archiveStats, artifacts, featuredArtifact } from "@/data/artifacts";
 import { scrollToId } from "@/lib/scroll";
 import { eraAccent } from "@/lib/tokens";
@@ -14,6 +15,9 @@ interface HeroProps {
 const SPAN_START = 1989;
 
 export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
+  const { lang, t } = useLanguage();
+  const site = localizedSite(lang);
+  const eras = localizedEras(lang);
   const [ready, setReady] = useState(false);
   const [hoverEra, setHoverEra] = useState<string | null>(null);
 
@@ -60,7 +64,7 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
             <div className={`flex items-center gap-3 ${rise(0)}`} style={{ transitionDelay: "60ms" }}>
               <span className="anim-blink h-2 w-2 bg-archive" aria-hidden />
               <span className="label text-muted">
-                Digital archive / {siteConfig.volume} · {SPAN_START} – {spanEnd}
+                {t.hero.kicker(site.volume, SPAN_START, spanEnd)}
               </span>
             </div>
 
@@ -68,12 +72,12 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
               className={`mt-6 text-[clamp(2.9rem,7.4vw,5.6rem)] ${rise(0)}`}
               style={{ transitionDelay: "140ms" }}
             >
-              Before everything
+              {t.hero.titleA}
               <br />
-              was online,
+              {t.hero.titleB}
               <br />
               <span className="relative inline-block italic">
-                everything was new.
+                {t.hero.titleC}
                 <svg
                   aria-hidden
                   viewBox="0 0 320 12"
@@ -100,7 +104,7 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
               className={`mt-8 max-w-lg text-[1.05rem] leading-relaxed text-slate-ink ${rise(0)}`}
               style={{ transitionDelay: "260ms" }}
             >
-              {siteConfig.intro}
+              {site.intro}
             </p>
 
             <div
@@ -112,14 +116,14 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
                 onClick={() => scrollToId("collections")}
                 className="btn btn-primary"
               >
-                Explore the archive <IconArrowRight size={15} />
+                {t.hero.exploreCta} <IconArrowRight size={15} />
               </button>
               <button
                 type="button"
                 onClick={() => scrollToId("timeline")}
                 className="btn btn-ghost"
               >
-                Travel through time <IconArrowDown size={15} />
+                {t.hero.timelineCta} <IconArrowDown size={15} />
               </button>
             </div>
 
@@ -128,10 +132,10 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
               style={{ transitionDelay: "420ms" }}
             >
               {[
-                { k: "Artefacts", v: archiveStats.artifacts },
-                { k: "Eras", v: archiveStats.eras },
-                { k: "Collections", v: archiveStats.collections },
-                { k: "Citations", v: archiveStats.sources },
+                { k: t.hero.statArtefacts, v: archiveStats.artifacts },
+                { k: t.hero.statEras, v: archiveStats.eras },
+                { k: t.hero.statCollections, v: archiveStats.collections },
+                { k: t.hero.statCitations, v: archiveStats.sources },
               ].map((s) => (
                 <div key={s.k} className="bg-ivory px-3 py-3">
                   <dt className="label text-[9px] text-muted">{s.k}</dt>
@@ -154,7 +158,7 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
                   type="button"
                   onClick={() => onOpenArtifact(featuredArtifact.id)}
                   className="group block w-full text-left"
-                  aria-label={`Open the record for ${featuredArtifact.title}`}
+                  aria-label={t.common.openRecordFor(featuredArtifact.title)}
                   style={{ transform: "rotate(-1.1deg)" }}
                 >
                   <div className="border border-line bg-paper p-2 shadow-[0_24px_60px_-32px_rgba(25,25,25,0.5)] transition-all duration-500 group-hover:-translate-y-2 group-hover:rotate-0 group-hover:shadow-[0_36px_70px_-30px_rgba(25,25,25,0.55)]">
@@ -165,10 +169,10 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
                     />
                     <div className="flex items-center justify-between px-1 pb-1 pt-2">
                       <span className="label text-[9px] text-muted">
-                        Accession {featuredArtifact.catalogId}
+                        {t.hero.accession(featuredArtifact.catalogId)}
                       </span>
                       <span className="label flex items-center gap-1 text-[9px] text-archive">
-                        Open record <IconArrowRight size={11} />
+                        {t.common.openRecord} <IconArrowRight size={11} />
                       </span>
                     </div>
                   </div>
@@ -182,7 +186,7 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
                       key={a.id}
                       type="button"
                       onClick={() => onOpenArtifact(a.id)}
-                      aria-label={`Open the record for ${a.title}`}
+                      aria-label={t.common.openRecordFor(a.title)}
                       className={`group absolute hidden w-[38%] border border-line bg-paper p-1.5 shadow-[0_18px_40px_-24px_rgba(25,25,25,0.55)] transition-all duration-500 hover:z-30 hover:-translate-y-2 hover:rotate-0 sm:block ${rise(0)} ${
                         i === 0
                           ? "-right-4 -top-8 z-20 rotate-[3.4deg] lg:-right-10"
@@ -192,7 +196,7 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
                     >
                       <ArtifactPlate artifact={a} className="aspect-[4/3] w-full" />
                       <span className="label mt-1.5 block truncate px-0.5 text-[8px] text-muted transition-colors group-hover:text-archive">
-                        {a.catalogId} · {a.title}
+                        {t.hero.collageLabel(a.catalogId, a.title)}
                       </span>
                     </button>
                   )
@@ -205,9 +209,9 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
               style={{ transitionDelay: "520ms" }}
             >
               <div className="flex items-baseline justify-between">
-                <span className="label text-[9px] text-muted">Jump to an era</span>
+                <span className="label text-[9px] text-muted">{t.hero.jumpToEra}</span>
                 <span className="label text-[9px] text-archive">
-                  {hoverEra ? eras.find((e) => e.id === hoverEra)?.years : `${SPAN_START} — ${spanEnd}`}
+                  {hoverEra ? eras.find((e) => e.id === hoverEra)?.years : t.hero.eraRange(SPAN_START, spanEnd)}
                 </span>
               </div>
               <div className="relative mt-3 h-[54px] select-none">
@@ -227,7 +231,7 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
                       onBlur={() => setHoverEra(null)}
                       className="group absolute top-0 h-[54px] text-left"
                       style={{ left: `${left}%`, width: `${width}%` }}
-                      aria-label={`${era.title}, ${era.years} — open the timeline`}
+                      aria-label={t.hero.eraAria(era.title, era.years)}
                     >
                       <span
                         className="absolute top-[13px] h-[11px] w-full border-x transition-all duration-300"
@@ -279,5 +283,3 @@ export function Hero({ onOpenArtifact, onSelectEra }: HeroProps) {
     </section>
   );
 }
-
-

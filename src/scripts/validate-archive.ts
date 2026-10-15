@@ -17,6 +17,10 @@ import {
   pickRandom,
 } from "@/data/artifacts";
 import { comparisons } from "@/data/comparisons";
+import { artifactTextId } from "@/i18n/artifacts";
+import { idComparisonSource } from "@/i18n/comparisons";
+import { en } from "@/i18n/en";
+import { id } from "@/i18n/id";
 
 const errors: string[] = [];
 const warnings: string[] = [];
@@ -109,6 +113,68 @@ comparisons.forEach((pair, i) => {
   if (pair.rows.length < 3) fail(`Comparison ${pair.id}: needs at least three axes of change`);
   if (!pair.thesis.trim()) fail(`Comparison ${pair.id}: missing summary of the evolution`);
 });
+
+/* ---------- Indonesian localisation parity ---------- */
+for (const a of artifacts) {
+  const text = artifactTextId[a.id];
+  if (!text) {
+    fail(`${a.id}: missing Indonesian record text`);
+    continue;
+  }
+  if (!text.blurb.trim()) fail(`${a.id}: empty Indonesian blurb`);
+  if (!text.significance.trim()) fail(`${a.id}: empty Indonesian curatorial note`);
+  if (text.blurb === a.blurb) warn(`${a.id}: Indonesian blurb is identical to the English one`);
+  if (text.story.length !== a.story.length) {
+    fail(`${a.id}: Indonesian story has ${text.story.length} paragraphs, expected ${a.story.length}`);
+  }
+  if (text.impact.length !== a.impact.length) {
+    fail(`${a.id}: Indonesian impact has ${text.impact.length} rows, expected ${a.impact.length}`);
+  }
+  if (text.facts.length !== a.facts.length) {
+    fail(`${a.id}: Indonesian facts have ${text.facts.length} rows, expected ${a.facts.length}`);
+  }
+  if (text.story.some((p) => !p.trim())) fail(`${a.id}: empty Indonesian story paragraph`);
+  if (text.impact.some((i) => !i.label.trim() || !i.text.trim())) {
+    fail(`${a.id}: incomplete Indonesian impact row`);
+  }
+  if (text.facts.some((f) => !f.label.trim() || !f.value.trim())) {
+    fail(`${a.id}: incomplete Indonesian fact row`);
+  }
+  if (!!text.image !== !!a.image) {
+    fail(`${a.id}: Indonesian image override ${text.image ? "exists" : "missing"} but English record ${a.image ? "has" : "has no"} image`);
+  }
+  if (text.image && (!text.image.alt.trim() || !text.image.caption.trim())) {
+    fail(`${a.id}: incomplete Indonesian image text`);
+  }
+}
+for (const key of Object.keys(artifactTextId)) {
+  if (!ids.has(key)) fail(`Indonesian text for unknown record: ${key}`);
+}
+
+if (idComparisonSource.length !== comparisons.length) {
+  fail(`Indonesian comparisons: ${idComparisonSource.length} pairings, expected ${comparisons.length}`);
+}
+comparisons.forEach((pair, i) => {
+  const translated = idComparisonSource[i];
+  if (!translated) return;
+  if (translated.id !== pair.id) fail(`Comparison ${i + 1}: id mismatch (${pair.id} vs ${translated.id})`);
+  if (translated.rows.length !== pair.rows.length) {
+    fail(`Comparison ${pair.id}: ${translated.rows.length} Indonesian axes, expected ${pair.rows.length}`);
+  }
+  if (translated.then.artifactId !== pair.then.artifactId) {
+    fail(`Comparison ${pair.id}: “then” side links to a different record in Indonesian`);
+  }
+  if (translated.now.artifactId !== pair.now.artifactId) {
+    fail(`Comparison ${pair.id}: “now” side links to a different record in Indonesian`);
+  }
+  if (!translated.thesis.trim()) fail(`Comparison ${pair.id}: missing Indonesian summary`);
+});
+
+// Both dictionaries must expose the same top-level sections. (Shared `Strings`
+// typing already guarantees deep parity at compile time.)
+const enSections = Object.keys(en).sort().join(",");
+const idSections = Object.keys(id).sort().join(",");
+if (enSections !== idSections) fail("UI dictionaries expose different sections");
 
 /* ---------- Behaviour smoke tests ---------- */
 const queryOnly = applyFilters(artifacts, { ...defaultFilters, query: "netscape" });

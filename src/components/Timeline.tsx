@@ -1,5 +1,6 @@
 import { useRef } from "react";
-import { categoryById, eras, type EraId } from "@/config";
+import type { EraId } from "@/config";
+import { localizedCategories, localizedEras, localizeArtifact, useLanguage } from "@/i18n";
 import { artefactsByEra } from "@/data/artifacts";
 import { useInView } from "@/hooks/useInView";
 import { eraAccent } from "@/lib/tokens";
@@ -16,14 +17,19 @@ interface TimelineProps {
 const SPAN_START = 1989;
 
 export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra }: TimelineProps) {
+  const { lang, t } = useLanguage();
+  const eras = localizedEras(lang);
+  const categories = localizedCategories(lang);
   const { ref, inView } = useInView<HTMLElement>(0.08);
   const tabsRef = useRef<HTMLDivElement>(null);
 
   const index = eras.findIndex((e) => e.id === activeEra);
   const era = eras[index] ?? eras[0];
-  const items = artefactsByEra(era.id);
+  const items = artefactsByEra(era.id).map((a) => localizeArtifact(a, lang));
   const spanEnd = Math.max(...eras.map((e) => e.to), 2025);
   const span = spanEnd - SPAN_START;
+
+  const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
 
   const move = (dir: 1 | -1) => {
     const next = (index + dir + eras.length) % eras.length;
@@ -57,13 +63,13 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8">
         <header className={`reveal ${inView ? "is-in" : ""} flex flex-wrap items-end justify-between gap-6`}>
           <div>
-            <span className="label text-archive">Section 02 — Chronology</span>
-            <h2 className="mt-4 text-[clamp(2.2rem,5.4vw,4.2rem)]">Timeline Explorer</h2>
+            <span className="label text-archive">{t.timeline.section}</span>
+            <h2 className="mt-4 text-[clamp(2.2rem,5.4vw,4.2rem)]">{t.timeline.title}</h2>
           </div>
           <p className="max-w-sm text-[0.92rem] leading-relaxed text-slate-ink">
-            Four periods, each with its own infrastructure, habits and visual language.
-            Select one to read the wall label and its catalogue entries — or use the
-            <span className="font-mono text-[0.8rem]"> ← → </span> keys.
+            {t.timeline.descriptionA}
+            <span className="font-mono text-[0.8rem]"> {t.timeline.keysHint} </span>
+            {t.timeline.descriptionB}
           </p>
         </header>
 
@@ -71,7 +77,7 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
         <div
           ref={tabsRef}
           role="tablist"
-          aria-label="Internet eras"
+          aria-label={t.timeline.erasAria}
           aria-orientation="horizontal"
           onKeyDown={onKeyDown}
           className={`reveal ${inView ? "is-in" : ""} mt-10 grid grid-cols-2 gap-px border border-line bg-line lg:grid-cols-4`}
@@ -102,7 +108,7 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
                   }}
                 />
                 <span className="label flex items-center gap-2 text-[9px] opacity-70">
-                  Era {String(i + 1).padStart(2, "0")}
+                  {t.timeline.eraNumber(i)}
                   <span className={`h-1.5 w-1.5 ${selected ? "bg-archive" : "bg-line"}`} aria-hidden />
                 </span>
                 <span className="mt-2.5 block font-display text-[clamp(1.25rem,2.3vw,1.85rem)] leading-[1.05]">
@@ -113,7 +119,7 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
                     selected ? "text-ivory/65" : "text-muted"
                   }`}
                 >
-                  {e.years} · {count} entries
+                  {t.timeline.entriesCount(e.years, count)}
                 </span>
                 <span
                   aria-hidden
@@ -157,11 +163,11 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
 
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-line pt-6">
               <div>
-                <span className="label text-[9px] text-muted">Connection</span>
+                <span className="label text-[9px] text-muted">{t.timeline.connection}</span>
                 <p className="mt-1 font-mono text-[0.75rem]">{era.bandwidth}</p>
               </div>
               <div>
-                <span className="label text-[9px] text-muted">Signature</span>
+                <span className="label text-[9px] text-muted">{t.timeline.signature}</span>
                 <p className="mt-1 font-mono text-[0.75rem]">{era.signature}</p>
               </div>
               <div className="ml-auto flex items-center gap-2">
@@ -169,7 +175,7 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
                   type="button"
                   onClick={() => move(-1)}
                   className="border border-line p-2.5 transition-colors hover:border-ink hover:bg-ink hover:text-ivory"
-                  aria-label="Previous era"
+                  aria-label={t.timeline.prevEra}
                 >
                   <IconArrowLeft size={15} />
                 </button>
@@ -177,7 +183,7 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
                   type="button"
                   onClick={() => move(1)}
                   className="border border-line p-2.5 transition-colors hover:border-ink hover:bg-ink hover:text-ivory"
-                  aria-label="Next era"
+                  aria-label={t.timeline.nextEra}
                 >
                   <IconArrowRight size={15} />
                 </button>
@@ -186,7 +192,7 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
 
             <div className="mt-7 flex flex-wrap gap-3">
               <button type="button" onClick={() => onExploreEra(era.id)} className="btn btn-primary">
-                Browse all {items.length} entries <IconArrowRight size={14} />
+                {t.timeline.browseAll(items.length)} <IconArrowRight size={14} />
               </button>
               {/* Era position on the full span */}
               <div
@@ -212,9 +218,9 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
           {/* Index sheet for the selected era */}
           <div className="bg-paper p-6 sm:p-9 lg:col-span-7">
             <div className="flex items-baseline justify-between border-b border-line pb-3">
-              <span className="label text-[9px] text-muted">Catalogue index — {era.title}</span>
+              <span className="label text-[9px] text-muted">{t.timeline.catalogueIndex(era.title)}</span>
               <span className="label text-[9px] text-archive">
-                {String(items.length).padStart(2, "0")} records
+                {t.timeline.records(items.length)}
               </span>
             </div>
 
@@ -237,7 +243,7 @@ export function Timeline({ activeEra, onSelectEra, onOpenArtifact, onExploreEra 
                         {a.title}
                       </span>
                       <span className="mt-1 block truncate font-mono text-[0.66rem] text-muted">
-                        {a.catalogId} · {a.year} · {categoryById(a.category).name}
+                        {a.catalogId} · {a.year} · {categoryName(a.category)}
                       </span>
                     </span>
                     <span className="hidden max-w-[16rem] shrink-0 text-[0.78rem] leading-snug text-slate-ink md:block">

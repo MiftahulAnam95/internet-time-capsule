@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { categoryById, eraById } from "@/config";
+import { localizedCategory, localizedEra, localizeArtifact, useLanguage } from "@/i18n";
 import { pickRandom } from "@/data/artifacts";
 import type { Artifact } from "@/data/types";
 import type { Bookmarks } from "@/hooks/useBookmarks";
@@ -15,15 +15,18 @@ interface DiscoveryProps {
 /** Random Discovery — pulls one record out of the archive drawers.
  *  Never repeats the previous pick while other records remain. */
 export function Discovery({ onOpenArtifact, bookmarks }: DiscoveryProps) {
-  const [current, setCurrent] = useState<Artifact | null>(null);
+  const { lang, t } = useLanguage();
+  const [drawn, setDrawn] = useState<Artifact | null>(null);
   const [draws, setDraws] = useState(0);
   const [spinning, setSpinning] = useState(false);
+
+  const current = drawn ? localizeArtifact(drawn, lang) : null;
 
   const draw = useCallback(() => {
     setSpinning(true);
     // A short delay so the change is legible rather than instantaneous.
     window.setTimeout(() => {
-      setCurrent((prev) => pickRandom(prev?.id));
+      setDrawn((prev) => pickRandom(prev?.id));
       setDraws((d) => d + 1);
       setSpinning(false);
     }, 320);
@@ -40,27 +43,23 @@ export function Discovery({ onOpenArtifact, bookmarks }: DiscoveryProps) {
 
       <div className="relative mx-auto grid max-w-[1440px] grid-cols-1 gap-x-14 gap-y-12 px-5 sm:px-8 lg:grid-cols-12">
         <div className="lg:col-span-5">
-          <span className="label text-archive">Section 05 — Random discovery</span>
+          <span className="label text-archive">{t.discovery.section}</span>
           <h2 className="mt-4 text-[clamp(2.1rem,5vw,3.8rem)] leading-[0.96]">
-            Pull a record
+            {t.discovery.titleA}
             <br />
-            from the drawers
+            {t.discovery.titleB}
           </h2>
           <p className="mt-6 max-w-md text-[0.95rem] leading-relaxed text-slate-ink">
-            The archive is organised by date and collection, but some of the best finds are
-            accidents. Draw one at random — the selector avoids repeating the last record
-            until it has run through the rest of the catalogue.
+            {t.discovery.description}
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <button type="button" onClick={draw} className="btn btn-primary" disabled={spinning}>
               <IconShuffle size={15} className={spinning ? "animate-spin" : ""} />
-              {current ? "Surprise me again" : "Surprise me"}
+              {current ? t.discovery.surpriseAgain : t.discovery.surprise}
             </button>
             <span className="label text-[9px] text-muted" aria-live="polite">
-              {draws === 0
-                ? "No record drawn yet"
-                : `${draws} ${draws === 1 ? "draw" : "draws"} this visit`}
+              {draws === 0 ? t.discovery.noDraw : t.discovery.draws(draws)}
             </span>
           </div>
 
@@ -79,7 +78,7 @@ export function Discovery({ onOpenArtifact, bookmarks }: DiscoveryProps) {
                 />
               ))}
               <span className="label ml-2 pb-2 text-[9px] text-muted">
-                Waiting for a draw
+                {t.discovery.waiting}
               </span>
             </div>
           )}
@@ -99,7 +98,7 @@ export function Discovery({ onOpenArtifact, bookmarks }: DiscoveryProps) {
                   <div className="flex items-center justify-between gap-3">
                     <span className="label flex items-center gap-2 text-[9px]" style={{ color: eraAccent[current.era] }}>
                       <span className="inline-block h-1.5 w-1.5" style={{ background: eraAccent[current.era] }} aria-hidden />
-                      {eraById(current.era).title}
+                      {localizedEra(current.era, lang).title}
                     </span>
                     <span className="label text-[9px] text-muted">{current.catalogId}</span>
                   </div>
@@ -108,13 +107,13 @@ export function Discovery({ onOpenArtifact, bookmarks }: DiscoveryProps) {
                     {current.title}
                   </h3>
                   <p className="label mt-2.5 text-[9px] text-muted">
-                    {current.year} · {categoryById(current.category).name}
+                    {current.year} · {localizedCategory(current.category, lang).name}
                   </p>
                   <p className="mt-4 text-[0.92rem] leading-relaxed text-slate-ink">{current.blurb}</p>
 
                   <div className="mt-6 flex flex-wrap gap-3">
                     <button type="button" onClick={() => onOpenArtifact(current.id)} className="btn btn-primary">
-                      Read the story <IconArrowRight size={14} />
+                      {t.common.readStory} <IconArrowRight size={14} />
                     </button>
                     <button
                       type="button"
@@ -123,7 +122,7 @@ export function Discovery({ onOpenArtifact, bookmarks }: DiscoveryProps) {
                       className={`btn btn-ghost ${saved ? "border-archive text-archive" : ""}`}
                     >
                       <IconBookmark size={14} filled={saved} />
-                      {saved ? "Saved" : "Save"}
+                      {saved ? t.common.saved : t.common.save}
                     </button>
                   </div>
                 </div>
@@ -131,12 +130,12 @@ export function Discovery({ onOpenArtifact, bookmarks }: DiscoveryProps) {
             </article>
           ) : (
             <div className="flex h-full min-h-[16rem] flex-col items-center justify-center border border-dashed border-line bg-paper/60 px-6 py-14 text-center">
-              <span className="label text-[9px] text-archive">Drawer closed</span>
+              <span className="label text-[9px] text-archive">{t.discovery.drawerClosed}</span>
               <p className="mt-4 max-w-sm font-display text-[clamp(1.4rem,2.6vw,2rem)] leading-tight">
-                Nothing drawn yet. Press the button and the archive will choose for you.
+                {t.discovery.drawerEmpty}
               </p>
               <p className="label mt-5 text-[9px] text-muted">
-                Every draw is taken from the full catalogue, across all four eras
+                {t.discovery.drawerNote}
               </p>
             </div>
           )}
