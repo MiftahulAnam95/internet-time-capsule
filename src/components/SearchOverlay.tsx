@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { categories, eras, type CategoryId, type EraId } from "@/config";
+import type { CategoryId, EraId } from "@/config";
+import { localizedCategories, localizedCategory, localizedEras, useLanguage } from "@/i18n";
 import { applyFilters, artifacts, defaultFilters } from "@/data/artifacts";
-import { categoryById } from "@/config";
 import { scrollToId } from "@/lib/scroll";
 import { IconArrowRight, IconClose, IconSearch, IconShuffle } from "./icons";
 
@@ -22,14 +22,17 @@ export function SearchOverlay({
   onApplyFilters,
   onSurprise,
 }: SearchOverlayProps) {
+  const { lang, t } = useLanguage();
+  const eras = localizedEras(lang);
+  const categories = localizedCategories(lang);
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const results = useMemo(
-    () => applyFilters(artifacts, { ...defaultFilters, query }).slice(0, MAX_RESULTS),
-    [query]
+    () => applyFilters(artifacts, { ...defaultFilters, query }, lang).slice(0, MAX_RESULTS),
+    [query, lang]
   );
 
   useEffect(() => {
@@ -37,9 +40,9 @@ export function SearchOverlay({
     setQuery("");
     setCursor(0);
     document.body.classList.add("is-locked");
-    const t = window.setTimeout(() => inputRef.current?.focus(), 50);
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 50);
     return () => {
-      window.clearTimeout(t);
+      window.clearTimeout(timer);
       document.body.classList.remove("is-locked");
     };
   }, [open]);
@@ -83,7 +86,7 @@ export function SearchOverlay({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Search the archive"
+        aria-label={t.search.dialogAria}
         onKeyDown={onKeyDown}
         className="anim-modal grain relative mt-0 flex max-h-full w-full max-w-3xl flex-col overflow-hidden border border-line bg-ivory sm:mt-6"
       >
@@ -94,8 +97,8 @@ export function SearchOverlay({
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search titles, stories, technologies, years…"
-            aria-label="Search the archive"
+            placeholder={t.search.placeholder}
+            aria-label={t.search.dialogAria}
             className="flex-1 bg-transparent py-1.5 font-display text-[clamp(1.2rem,3vw,1.9rem)] leading-tight placeholder:font-body placeholder:text-[0.9rem] placeholder:text-muted focus:outline-none"
           />
           <kbd className="label hidden border border-line px-1.5 py-1 text-[9px] text-muted sm:inline">
@@ -105,7 +108,7 @@ export function SearchOverlay({
             type="button"
             onClick={onClose}
             className="p-1.5 text-slate-ink transition-colors hover:text-archive"
-            aria-label="Close search"
+            aria-label={t.search.close}
           >
             <IconClose size={16} />
           </button>
@@ -114,7 +117,7 @@ export function SearchOverlay({
         <div className="min-h-0 flex-1 overflow-y-auto">
           {query.trim() === "" ? (
             <div className="p-4 sm:p-6">
-              <p className="label text-[9px] text-muted">Jump straight to a period</p>
+              <p className="label text-[9px] text-muted">{t.search.jumpPeriod}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {eras.map((e) => (
                   <button key={e.id} type="button" className="chip" onClick={() => jumpTo({ eras: [e.id], categories: [] })}>
@@ -123,7 +126,7 @@ export function SearchOverlay({
                 ))}
               </div>
 
-              <p className="label mt-7 text-[9px] text-muted">Or a collection</p>
+              <p className="label mt-7 text-[9px] text-muted">{t.search.orCollection}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {categories.map((c) => (
                   <button key={c.id} type="button" className="chip" onClick={() => jumpTo({ categories: [c.id], eras: [] })}>
@@ -134,7 +137,7 @@ export function SearchOverlay({
 
               <div className="mt-8 border-t border-line pt-5">
                 <div className="flex items-center justify-between">
-                  <p className="label text-[9px] text-muted">Recently catalogued</p>
+                  <p className="label text-[9px] text-muted">{t.search.recentlyCatalogued}</p>
                   <button
                     type="button"
                     onClick={() => {
@@ -143,7 +146,7 @@ export function SearchOverlay({
                     }}
                     className="label flex items-center gap-2 text-[9px] text-archive transition-opacity hover:opacity-70"
                   >
-                    <IconShuffle size={12} /> Draw a random record
+                    <IconShuffle size={12} /> {t.search.randomCta}
                   </button>
                 </div>
                 <ul className="mt-3 divide-y divide-line">
@@ -169,7 +172,7 @@ export function SearchOverlay({
               </div>
             </div>
           ) : results.length > 0 ? (
-            <ul className="divide-y divide-line" role="listbox" aria-label="Search results">
+            <ul className="divide-y divide-line" role="listbox" aria-label={t.search.resultsAria}>
               {results.map((a, i) => (
                 <li key={a.id} role="option" aria-selected={i === cursor}>
                   <button
@@ -196,7 +199,7 @@ export function SearchOverlay({
                           i === cursor ? "text-ivory/60" : "text-muted"
                         }`}
                       >
-                        {categoryById(a.category).name} · {a.year}
+                        {localizedCategory(a.category, lang).name} · {a.year}
                       </span>
                     </span>
                     <IconArrowRight
@@ -209,13 +212,12 @@ export function SearchOverlay({
             </ul>
           ) : (
             <div className="px-6 py-14 text-center">
-              <p className="label text-[9px] text-archive">No match</p>
+              <p className="label text-[9px] text-archive">{t.search.noMatch}</p>
               <p className="mt-3 font-display text-[1.6rem] leading-tight">
-                Nothing catalogued under “{query}”.
+                {t.search.noMatchTitle(query)}
               </p>
               <p className="mx-auto mt-3 max-w-sm text-[0.86rem] leading-relaxed text-slate-ink">
-                Try a technology, a company, a year, or a word from a story — for example
-                “modem”, “Netscape”, “1999” or “hashtag”.
+                {t.search.noMatchBody}
               </p>
             </div>
           )}
@@ -224,16 +226,14 @@ export function SearchOverlay({
         <div className="flex items-center justify-between border-t border-line px-4 py-2.5 sm:px-6">
           <span className="label text-[9px] text-muted">
             {query.trim()
-              ? `${results.length} of ${artifacts.length} records`
-              : `${artifacts.length} records · 4 eras · 6 collections`}
+              ? t.search.resultsCount(results.length, artifacts.length)
+              : t.search.totalLine(artifacts.length)}
           </span>
           <span className="label hidden text-[9px] text-muted sm:inline">
-            ↑ ↓ to move · Enter to open
+            {t.search.hint}
           </span>
         </div>
       </div>
     </div>
   );
 }
-
-

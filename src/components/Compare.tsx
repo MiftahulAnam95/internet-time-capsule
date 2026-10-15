@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { comparisons } from "@/data/comparisons";
+import { localizedComparisons, useLanguage } from "@/i18n";
 import { getArtifact } from "@/data/artifacts";
 import { useInView } from "@/hooks/useInView";
 import { ArtifactPlate } from "./ArtifactPlate";
@@ -10,6 +10,8 @@ interface CompareProps {
 }
 
 export function Compare({ onOpenArtifact }: CompareProps) {
+  const { lang, t } = useLanguage();
+  const comparisons = localizedComparisons(lang);
   const { ref, inView } = useInView<HTMLElement>(0.06);
   const [pairIndex, setPairIndex] = useState(0);
   const pair = comparisons[pairIndex];
@@ -37,17 +39,15 @@ export function Compare({ onOpenArtifact }: CompareProps) {
       <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8">
         <header className={`reveal ${inView ? "is-in" : ""} flex flex-wrap items-end justify-between gap-8 border-b border-line-dark pb-6`}>
           <div>
-            <span className="label text-archive">Section 04 — Then vs now</span>
+            <span className="label text-archive">{t.compare.section}</span>
             <h2 className="mt-4 text-[clamp(2.2rem,5.4vw,4.2rem)] leading-[0.95]">
-              Two internets,
+              {t.compare.titleA}
               <br />
-              held side by side
+              {t.compare.titleB}
             </h2>
           </div>
           <p className="max-w-sm text-[0.92rem] leading-relaxed text-ivory/70">
-            Six pairings from the catalogue. Each one puts a period object next to its modern
-            descendant and explains what actually changed — the tools, the economics and the
-            habits, not just the screenshots.
+            {t.compare.description}
           </p>
         </header>
 
@@ -76,7 +76,7 @@ export function Compare({ onOpenArtifact }: CompareProps) {
               type="button"
               onClick={() => move(-1)}
               className="border border-line-dark p-2.5 text-ivory/70 transition-colors hover:border-ivory hover:text-ivory"
-              aria-label="Previous comparison"
+              aria-label={t.compare.prevComparison}
             >
               <IconArrowLeft size={15} />
             </button>
@@ -84,7 +84,7 @@ export function Compare({ onOpenArtifact }: CompareProps) {
               type="button"
               onClick={() => move(1)}
               className="border border-line-dark p-2.5 text-ivory/70 transition-colors hover:border-ivory hover:text-ivory"
-              aria-label="Next comparison"
+              aria-label={t.compare.nextComparison}
             >
               <IconArrowRight size={15} />
             </button>
@@ -122,7 +122,7 @@ export function Compare({ onOpenArtifact }: CompareProps) {
                     type="button"
                     onClick={() => onOpenArtifact(artifact.id)}
                     className="group mt-5 block w-full text-left"
-                    aria-label={`Open the record for ${artifact.title}`}
+                    aria-label={t.common.openRecordFor(artifact.title)}
                   >
                     <div className="border border-line-dark transition-colors duration-500 group-hover:border-ivory/40">
                       <ArtifactPlate
@@ -132,7 +132,7 @@ export function Compare({ onOpenArtifact }: CompareProps) {
                     </div>
                     <span className="label mt-2.5 flex items-center justify-between text-[9px] text-ivory/45 transition-colors group-hover:text-archive">
                       <span className="truncate">{artifact.title}</span>
-                      <span className="ml-3 shrink-0">Open record →</span>
+                      <span className="ml-3 shrink-0">{t.compare.openRecordArrow}</span>
                     </span>
                   </button>
                 )}
@@ -161,9 +161,9 @@ export function Compare({ onOpenArtifact }: CompareProps) {
         {/* ---------- What actually changed ---------- */}
         <div className="mt-px border border-line-dark bg-graphite">
           <div className="grid grid-cols-1 border-b border-line-dark px-5 py-4 sm:px-8 lg:grid-cols-[9rem_1fr_1fr] lg:gap-10">
-            <span className="label text-[9px] text-archive">Axis of change</span>
-            <span className="label text-[9px] text-ivory/45">Then</span>
-            <span className="label hidden text-[9px] text-ivory/45 lg:block">Now</span>
+            <span className="label text-[9px] text-archive">{t.compare.axisOfChange}</span>
+            <span className="label text-[9px] text-ivory/45">{t.compare.then}</span>
+            <span className="label hidden text-[9px] text-ivory/45 lg:block">{t.compare.now}</span>
           </div>
           <ul>
             {pair.rows.map((row) => (
@@ -173,11 +173,11 @@ export function Compare({ onOpenArtifact }: CompareProps) {
               >
                 <span className="label text-[9px] text-ivory/55">{row.axis}</span>
                 <span className="text-[0.88rem] leading-relaxed text-ivory/80">
-                  <span className="label mr-2 text-[9px] text-archive lg:hidden">Then</span>
+                  <span className="label mr-2 text-[9px] text-archive lg:hidden">{t.compare.then}</span>
                   {row.then}
                 </span>
                 <span className="text-[0.88rem] leading-relaxed text-ivory/80">
-                  <span className="label mr-2 text-[9px] text-ivory/45 lg:hidden">Now</span>
+                  <span className="label mr-2 text-[9px] text-ivory/45 lg:hidden">{t.compare.now}</span>
                   {row.now}
                 </span>
               </li>
@@ -188,7 +188,7 @@ export function Compare({ onOpenArtifact }: CompareProps) {
         {/* ---------- Curatorial summary ---------- */}
         <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="lg:col-span-8">
-            <h3 className="label text-[9px] text-ivory/45">Summary of the evolution</h3>
+            <h3 className="label text-[9px] text-ivory/45">{t.compare.summaryTitle}</h3>
             <p className="mt-4 font-display text-[clamp(1.35rem,2.7vw,2rem)] italic leading-[1.3] text-ivory">
               {pair.thesis}
             </p>
@@ -199,11 +199,10 @@ export function Compare({ onOpenArtifact }: CompareProps) {
               onClick={() => move(1)}
               className="btn btn-light justify-between"
             >
-              Next pairing <IconArrowRight size={14} />
+              {t.compare.nextPairing} <IconArrowRight size={14} />
             </button>
             <p className="label text-[9px] leading-relaxed text-ivory/40">
-              {String(pairIndex + 1).padStart(2, "0")} of {String(comparisons.length).padStart(2, "0")} pairings ·
-              both sides link to catalogue records
+              {t.compare.pairingCount(pairIndex, comparisons.length)}
             </p>
           </div>
         </div>

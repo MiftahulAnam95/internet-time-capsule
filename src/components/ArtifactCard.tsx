@@ -1,4 +1,4 @@
-import { categoryById, eraById } from "@/config";
+import { localizedCategory, localizedEra, localizeArtifact, useLanguage } from "@/i18n";
 import type { Artifact } from "@/data/types";
 import type { Bookmarks } from "@/hooks/useBookmarks";
 import { eraAccent } from "@/lib/tokens";
@@ -13,9 +13,11 @@ interface CardProps {
   index: number;
 }
 
-export function ArtifactCard({ artifact, aspect, onOpen, bookmarks, index }: CardProps) {
-  const cat = categoryById(artifact.category);
-  const era = eraById(artifact.era);
+export function ArtifactCard({ artifact: source, aspect, onOpen, bookmarks, index }: CardProps) {
+  const { lang, t } = useLanguage();
+  const artifact = localizeArtifact(source, lang);
+  const cat = localizedCategory(artifact.category, lang);
+  const era = localizedEra(artifact.era, lang);
   const saved = bookmarks.has(artifact.id);
 
   return (
@@ -45,8 +47,8 @@ export function ArtifactCard({ artifact, aspect, onOpen, bookmarks, index }: Car
             type="button"
             onClick={() => bookmarks.toggle(artifact.id)}
             aria-pressed={saved}
-            aria-label={saved ? `Remove ${artifact.title} from My Archive` : `Save ${artifact.title} to My Archive`}
-            title={saved ? "Remove from My Archive" : "Save to My Archive"}
+            aria-label={saved ? t.common.removeAria(artifact.title) : t.common.saveAria(artifact.title)}
+            title={saved ? t.common.removeTitle : t.common.saveTitle}
             className={`relative z-20 -mr-1 -mt-1 p-1.5 transition-colors duration-300 ${
               saved ? "text-archive" : "text-muted hover:text-ink"
             }`}
@@ -60,7 +62,7 @@ export function ArtifactCard({ artifact, aspect, onOpen, bookmarks, index }: Car
             type="button"
             onClick={() => onOpen(artifact.id)}
             className="text-left after:absolute after:inset-0 after:content-['']"
-            aria-label={`Open the record for ${artifact.title}`}
+            aria-label={t.common.openRecordFor(artifact.title)}
           >
             {artifact.title}
           </button>
@@ -73,7 +75,7 @@ export function ArtifactCard({ artifact, aspect, onOpen, bookmarks, index }: Car
         <div className="mt-auto flex items-end justify-between gap-4 pt-5">
           <span className="font-mono text-[0.68rem] text-muted">{artifact.year}</span>
           <span className="label flex items-center gap-1.5 text-[9px] text-archive">
-            Open record
+            {t.common.openRecord}
             <IconArrowRight
               size={13}
               className="transition-transform duration-300 group-hover:translate-x-1"

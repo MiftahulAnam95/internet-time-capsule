@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { categoryById, eraById } from "@/config";
+import { localizedCategory, localizedEra, useLanguage } from "@/i18n";
 import { commonsUrl, type Artifact } from "@/data/types";
 import { eraAccent, monogram } from "@/lib/tokens";
 
@@ -20,6 +20,7 @@ interface PlateProps {
 }
 
 export function ArtifactPlate({ artifact, className = "", caption = false, eager = false }: PlateProps) {
+  const { lang, t } = useLanguage();
   const image = artifact.image;
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -30,8 +31,8 @@ export function ArtifactPlate({ artifact, className = "", caption = false, eager
   }, [artifact.id]);
 
   const accent = eraAccent[artifact.era];
-  const era = eraById(artifact.era);
-  const cat = categoryById(artifact.category);
+  const era = localizedEra(artifact.era, lang);
+  const cat = localizedCategory(artifact.category, lang);
 
   return (
     <figure className={`m-0 flex flex-col ${className}`}>
@@ -103,7 +104,7 @@ export function ArtifactPlate({ artifact, className = "", caption = false, eager
       {caption && (!image || failed) && (
         <figcaption className="border-t border-line bg-paper px-3 py-2">
           <p className="label text-[9px] text-muted">
-            Curator's plate · no freely licensed image verified for this entry
+            {t.plate.noImageCaption}
           </p>
           <p className="mt-1 text-[12px] leading-snug text-slate-ink">
             {era.title}, {era.years}
@@ -131,7 +132,8 @@ function PlateSkeleton() {
 
 /** Fallback composition: typography and rules, no stock imagery. */
 function CuratorsPlate({ artifact, accent }: { artifact: Artifact; accent: string }) {
-  const era = eraById(artifact.era);
+  const { lang, t } = useLanguage();
+  const era = localizedEra(artifact.era, lang);
   return (
     <div className="relative z-10 flex h-full w-full flex-col justify-between p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
@@ -162,7 +164,7 @@ function CuratorsPlate({ artifact, accent }: { artifact: Artifact; accent: strin
         <p className="font-display text-[clamp(1.05rem,2.1vw,1.5rem)] leading-[1.1] text-ivory">
           {artifact.title}
         </p>
-        <p className="label text-[9px] text-ivory/40">Curator's plate · {categoryById(artifact.category).code}</p>
+        <p className="label text-[9px] text-ivory/40">{t.plate.curatorsPlate(localizedCategory(artifact.category, lang).code)}</p>
       </div>
     </div>
   );

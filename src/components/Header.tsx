@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
-import { siteConfig } from "@/config";
-import { scrollToId } from "@/lib/scroll";
+import { localizedSite, useLanguage } from "@/i18n";
+import { scrollToId, scrollToTop } from "@/lib/scroll";
 import { IconBookmark, IconClose, IconMenu, IconSearch } from "./icons";
-
-const NAV = [
-  { id: "explore", label: "Explore" },
-  { id: "timeline", label: "Timeline" },
-  { id: "collections", label: "Collections" },
-  { id: "compare", label: "Then vs Now" },
-  { id: "archive", label: "My Archive" },
-  { id: "about", label: "About" },
-];
 
 interface HeaderProps {
   savedCount: number;
@@ -18,6 +9,9 @@ interface HeaderProps {
 }
 
 export function Header({ savedCount, onOpenSearch }: HeaderProps) {
+  const { lang, t, setLang } = useLanguage();
+  const site = localizedSite(lang);
+  const NAV = t.header.nav;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState("explore");
@@ -46,7 +40,7 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
     );
     sections.forEach((s) => io.observe(s));
     return () => io.disconnect();
-  }, []);
+  }, [NAV]);
 
   useEffect(() => {
     document.body.classList.toggle("is-locked", menuOpen);
@@ -60,6 +54,32 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
     window.history.replaceState(null, "", `#${id}`);
   };
 
+  const langToggle = (idPrefix: string) => (
+    <div
+      role="group"
+      aria-label={t.common.languageAria}
+      className="flex items-stretch border border-line"
+    >
+      {(["id", "en"] as const).map((code) => (
+        <button
+          key={code}
+          id={`${idPrefix}-${code}`}
+          type="button"
+          onClick={() => setLang(code)}
+          aria-pressed={lang === code}
+          title={`${t.common.language}: ${code === "id" ? "Bahasa Indonesia" : "English"}`}
+          className={`label px-2.5 py-2 text-[10px] transition-colors duration-300 ${
+            lang === code
+              ? "bg-ink text-ivory"
+              : "text-muted hover:bg-paper hover:text-ink"
+          }`}
+        >
+          {code.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <>
       <a
@@ -70,7 +90,7 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
         }}
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-ink focus:px-4 focus:py-2 focus:text-paper"
       >
-        Skip to the collection
+        {t.header.skipLink}
       </a>
 
       <header
@@ -83,19 +103,19 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
         <div className="mx-auto flex max-w-[1440px] items-center gap-6 px-5 sm:px-8">
           <button
             type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            onClick={() => scrollToTop()}
             className="group flex items-baseline gap-2 text-left"
-            aria-label={`${siteConfig.name} — back to top`}
+            aria-label={t.header.backToTopAria(site.name)}
           >
             <span className="font-display text-[1.35rem] leading-none tracking-tight sm:text-[1.55rem]">
               Internet&nbsp;Time&nbsp;Capsule
             </span>
             <span className="label hidden text-archive transition-colors group-hover:text-ink md:inline">
-              {siteConfig.volume}
+              {site.volume}
             </span>
           </button>
 
-          <nav aria-label="Sections" className="ml-auto hidden lg:block">
+          <nav aria-label={t.footer.sectionsTitle} className="ml-auto hidden lg:block">
             <ul className="flex items-center gap-6">
               {NAV.map((item) => (
                 <li key={item.id}>
@@ -121,15 +141,16 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <div className="hidden sm:block">{langToggle("lang-desktop")}</div>
             <button
               type="button"
               onClick={onOpenSearch}
               className="group flex items-center gap-2 border border-line px-2.5 py-2 transition-colors duration-300 hover:border-ink sm:px-3"
-              aria-label="Search the archive"
+              aria-label={t.header.searchAria}
             >
               <IconSearch size={15} />
               <span className="label hidden text-muted group-hover:text-ink sm:inline">
-                Search
+                {t.header.search}
               </span>
               <kbd className="label hidden border border-line px-1 text-[9px] text-muted md:inline">
                 /
@@ -140,10 +161,10 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
               type="button"
               onClick={() => go("archive")}
               className="group relative flex items-center gap-2 border border-line px-2.5 py-2 transition-colors duration-300 hover:border-ink sm:px-3"
-              aria-label={`My Archive — ${savedCount} saved ${savedCount === 1 ? "artefact" : "artefacts"}`}
+              aria-label={t.header.archiveAria(savedCount)}
             >
               <IconBookmark size={15} filled={savedCount > 0} />
-              <span className="label hidden text-muted group-hover:text-ink sm:inline">Archive</span>
+              <span className="label hidden text-muted group-hover:text-ink sm:inline">{t.header.archive}</span>
               <span
                 className={`label min-w-[1.15rem] px-1 text-center text-[9px] ${
                   savedCount > 0 ? "bg-archive text-paper" : "text-muted"
@@ -157,7 +178,7 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
               type="button"
               onClick={() => setMenuOpen(true)}
               className="border border-line p-2 transition-colors duration-300 hover:border-ink lg:hidden"
-              aria-label="Open menu"
+              aria-label={t.header.openMenu}
               aria-expanded={menuOpen}
             >
               <IconMenu size={16} />
@@ -180,18 +201,18 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Site menu"
+          aria-label={t.header.menuDialogLabel}
           className={`grain absolute inset-y-0 right-0 flex w-[min(22rem,88vw)] flex-col overflow-y-auto border-l border-line bg-ivory transition-transform duration-500 ${
             menuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
           <div className="relative flex items-center justify-between border-b border-line px-6 py-5">
-            <span className="label text-archive">Contents</span>
+            <span className="label text-archive">{t.header.contents}</span>
             <button
               type="button"
               onClick={() => setMenuOpen(false)}
               className="p-1 text-slate-ink transition-colors hover:text-archive"
-              aria-label="Close menu"
+              aria-label={t.header.closeMenu}
             >
               <IconClose size={18} />
             </button>
@@ -217,20 +238,24 @@ export function Header({ savedCount, onOpenSearch }: HeaderProps) {
             </ul>
           </nav>
           <div className="relative mt-auto border-t border-line px-6 py-5">
+            <div className="flex items-center justify-between gap-3">
+              <span className="label text-[9px] text-muted">{t.common.language}</span>
+              {langToggle("lang-drawer")}
+            </div>
             <button
               type="button"
               onClick={() => {
                 setMenuOpen(false);
                 onOpenSearch();
               }}
-              className="btn btn-primary w-full justify-center"
+              className="btn btn-primary mt-4 w-full justify-center"
             >
-              <IconSearch size={14} /> Search the archive
+              <IconSearch size={14} /> {t.header.searchCta}
             </button>
             <p className="label mt-4 text-[9px] leading-relaxed text-muted">
-              {siteConfig.name} · {siteConfig.volume}
+              {site.name} · {site.volume}
               <br />
-              {siteConfig.tagline}
+              {site.tagline}
             </p>
           </div>
         </div>

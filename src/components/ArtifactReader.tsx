@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { categoryById, eraById } from "@/config";
+import { localizedCategory, localizedEra, localizeArtifact, localizeLabel, useLanguage } from "@/i18n";
 import { deepLink, getArtifact, neighbours } from "@/data/artifacts";
 import type { Bookmarks } from "@/hooks/useBookmarks";
 import { eraAccent } from "@/lib/tokens";
@@ -32,7 +32,9 @@ export function ArtifactReader({
   onBackToCollection,
   bookmarks,
 }: ReaderProps) {
-  const artifact = getArtifact(artifactId);
+  const { lang, t } = useLanguage();
+  const source = getArtifact(artifactId);
+  const artifact = source ? localizeArtifact(source, lang) : undefined;
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
   const [copied, setCopied] = useState(false);
@@ -53,7 +55,13 @@ export function ArtifactReader({
 
   // Scroll to the top of a newly opened record.
   useEffect(() => {
-    panelRef.current?.scrollTo({ top: 0 });
+    const panel = panelRef.current;
+    if (panel) {
+      // Element.scrollTo is missing on very old browsers — fall back to a
+      // direct assignment so opening a record can never crash the page.
+      if (typeof panel.scrollTo === "function") panel.scrollTo({ top: 0 });
+      else panel.scrollTop = 0;
+    }
     setCopied(false);
   }, [artifactId]);
 
@@ -108,8 +116,8 @@ export function ArtifactReader({
   if (!artifact) return null;
 
   const { prev, next } = neighbours(artifact.id);
-  const era = eraById(artifact.era);
-  const cat = categoryById(artifact.category);
+  const era = localizedEra(artifact.era, lang);
+  const cat = localizedCategory(artifact.category, lang);
   const saved = bookmarks.has(artifact.id);
 
   return (
@@ -149,7 +157,7 @@ export function ArtifactReader({
               }`}
             >
               <IconBookmark size={13} filled={saved} />
-              <span className="hidden sm:inline">{saved ? "Saved" : "Save"}</span>
+              <span className="hidden sm:inline">{saved ? t.common.saved : t.common.save}</span>
             </button>
             <button
               type="button"
@@ -157,13 +165,13 @@ export function ArtifactReader({
               className="label flex items-center gap-2 border border-line px-2.5 py-1.5 text-[9px] text-slate-ink transition-colors duration-300 hover:border-ink"
             >
               {copied ? <IconCheck size={13} /> : <IconLink size={13} />}
-              <span className="hidden sm:inline">{copied ? "Copied" : "Copy link"}</span>
+              <span className="hidden sm:inline">{copied ? t.reader.copied : t.reader.copyLink}</span>
             </button>
             <button
               type="button"
               onClick={onClose}
               className="border border-line p-2 text-slate-ink transition-colors duration-300 hover:border-archive hover:bg-archive hover:text-paper"
-              aria-label="Close record (Escape)"
+              aria-label={t.reader.closeAria}
             >
               <IconClose size={15} />
             </button>
@@ -181,7 +189,7 @@ export function ArtifactReader({
             />
             {artifact.image ? (
               <p className="mt-3 text-[12px] leading-relaxed text-ivory/65">
-                <span className="label mr-2 text-[9px] text-archive">Plate</span>
+                <span className="label mr-2 text-[9px] text-archive">{t.reader.plateLabel}</span>
                 {artifact.image.caption}{" "}
                 <span className="text-ivory/40">
                   {artifact.image.credit}
@@ -190,7 +198,7 @@ export function ArtifactReader({
               </p>
             ) : (
               <p className="label mt-3 text-[9px] text-ivory/45">
-                Curator's plate — no freely licensed image could be verified for this entry.
+                {t.reader.noImage}
               </p>
             )}
           </div>
@@ -215,6 +223,12 @@ export function ArtifactReader({
               {artifact.blurb}
             </p>
 
+            {t.reader.storyLanguageNote && (
+              <p className="label mt-4 max-w-xl border-l-2 border-line pl-3 text-[9px] leading-relaxed text-muted">
+                {t.reader.storyLanguageNote}
+              </p>
+            )}
+
             <div className="mt-8 space-y-5 text-[0.98rem] leading-[1.8] text-slate-ink">
               {artifact.story.map((p, i) => (
                 <p key={i} className={i === 0 ? "first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-[3.4rem] first-letter:leading-[0.8] first-letter:text-ink" : ""}>
@@ -227,15 +241,15 @@ export function ArtifactReader({
               <p className="font-display text-[clamp(1.25rem,2.4vw,1.7rem)] italic leading-[1.35]">
                 {artifact.significance}
               </p>
-              <footer className="label mt-3 text-[9px] text-muted">Why it matters</footer>
+              <footer className="label mt-3 text-[9px] text-muted">{t.reader.whyItMatters}</footer>
             </blockquote>
 
             <div className="mt-10">
-              <h3 className="label text-[9px] text-muted">Impact</h3>
+              <h3 className="label text-[9px] text-muted">{t.reader.impact}</h3>
               <dl className="mt-4 divide-y divide-line border-y border-line">
                 {artifact.impact.map((row) => (
                   <div key={row.label} className="grid grid-cols-[6.5rem_1fr] gap-4 py-3.5">
-                    <dt className="label pt-0.5 text-[9px] text-archive">{row.label}</dt>
+                    <dt className="label pt-0.5 text-[9px] text-archive">{localizeLabel(row.label, lang)}</dt>
                     <dd className="text-[0.9rem] leading-relaxed text-slate-ink">{row.text}</dd>
                   </div>
                 ))}
@@ -247,24 +261,24 @@ export function ArtifactReader({
           <aside className="lg:col-span-5">
             <div className="border border-line bg-paper">
               <div className="flex items-center justify-between border-b border-line px-4 py-3">
-                <span className="label text-[9px] text-muted">Record card</span>
+                <span className="label text-[9px] text-muted">{t.reader.recordCard}</span>
                 <span className="font-mono text-[0.66rem] text-archive">{artifact.catalogId}</span>
               </div>
               <dl className="divide-y divide-line">
                 {artifact.facts.map((f) => (
                   <div key={f.label} className="px-4 py-3">
-                    <dt className="label text-[9px] text-muted">{f.label}</dt>
+                    <dt className="label text-[9px] text-muted">{localizeLabel(f.label, lang)}</dt>
                     <dd className="mt-1 font-mono text-[0.74rem] leading-relaxed text-ink">
                       {f.value}
                     </dd>
                   </div>
                 ))}
                 <div className="px-4 py-3">
-                  <dt className="label text-[9px] text-muted">Collection</dt>
+                  <dt className="label text-[9px] text-muted">{t.reader.collection}</dt>
                   <dd className="mt-1 font-mono text-[0.74rem] text-ink">{cat.name}</dd>
                 </div>
                 <div className="px-4 py-3">
-                  <dt className="label text-[9px] text-muted">Period</dt>
+                  <dt className="label text-[9px] text-muted">{t.reader.period}</dt>
                   <dd className="mt-1 font-mono text-[0.74rem] text-ink">{era.title}</dd>
                 </div>
               </dl>
@@ -272,7 +286,7 @@ export function ArtifactReader({
 
             <div className="mt-6 border border-line bg-paper">
               <div className="border-b border-line px-4 py-3">
-                <span className="label text-[9px] text-muted">Sources & further reading</span>
+                <span className="label text-[9px] text-muted">{t.reader.sources}</span>
               </div>
               <ul className="divide-y divide-line">
                 {artifact.sources.map((s) => (
@@ -296,8 +310,7 @@ export function ArtifactReader({
                 ))}
               </ul>
               <p className="label border-t border-line px-4 py-3 text-[9px] leading-relaxed text-muted">
-                Dates were checked against the cited sources. Launch, development and peak
-                popularity are recorded separately where they differ.
+                {t.reader.sourcesNote}
               </p>
             </div>
           </aside>
@@ -311,7 +324,7 @@ export function ArtifactReader({
               onClick={onBackToCollection}
               className="label flex items-center gap-2 text-[9px] text-slate-ink transition-colors hover:text-archive"
             >
-              <IconArrowLeft size={13} /> Back to collection
+              <IconArrowLeft size={13} /> {t.reader.backToCollection}
             </button>
 
             <div className="ml-auto flex items-center gap-2">
@@ -320,7 +333,7 @@ export function ArtifactReader({
                 disabled={!prev}
                 onClick={() => prev && onNavigate(prev.id)}
                 className="group flex items-center gap-2 border border-line px-3 py-2 transition-colors duration-300 enabled:hover:border-ink enabled:hover:bg-ink enabled:hover:text-ivory disabled:opacity-35"
-                aria-label={prev ? `Previous record: ${prev.title}` : "No previous record"}
+                aria-label={prev ? t.reader.prevRecord(prev.title) : t.reader.noPrev}
               >
                 <IconArrowLeft size={13} />
                 <span className="label hidden max-w-[9rem] truncate text-[9px] md:inline">
@@ -332,7 +345,7 @@ export function ArtifactReader({
                 disabled={!next}
                 onClick={() => next && onNavigate(next.id)}
                 className="group flex items-center gap-2 border border-line px-3 py-2 transition-colors duration-300 enabled:hover:border-ink enabled:hover:bg-ink enabled:hover:text-ivory disabled:opacity-35"
-                aria-label={next ? `Next record: ${next.title}` : "No next record"}
+                aria-label={next ? t.reader.nextRecord(next.title) : t.reader.noNext}
               >
                 <span className="label hidden max-w-[9rem] truncate text-[9px] md:inline">
                   {next ? next.title : "—"}

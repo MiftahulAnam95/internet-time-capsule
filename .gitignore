@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Production build output (rebuilt by CI on every deploy)
+dist/
+dist-ssr/
+
+# Local dev / OS artifacts
+*.local
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Temporary validation bundle (see src/scripts/validate-archive.ts)
+.tmp-validate.mjs
+.tmp-*.mjs

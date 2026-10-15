@@ -17,6 +17,10 @@ import {
   pickRandom,
 } from "@/data/artifacts";
 import { comparisons } from "@/data/comparisons";
+import { artifactTextId } from "@/i18n/artifacts";
+import { idComparisonSource } from "@/i18n/comparisons";
+import { en } from "@/i18n/en";
+import { id } from "@/i18n/id";
 
 const errors: string[] = [];
 const warnings: string[] = [];
@@ -109,6 +113,46 @@ comparisons.forEach((pair, i) => {
   if (pair.rows.length < 3) fail(`Comparison ${pair.id}: needs at least three axes of change`);
   if (!pair.thesis.trim()) fail(`Comparison ${pair.id}: missing summary of the evolution`);
 });
+
+/* ---------- Indonesian localisation parity ---------- */
+for (const a of artifacts) {
+  const text = artifactTextId[a.id];
+  if (!text) {
+    fail(`${a.id}: missing Indonesian summary (blurb + significance)`);
+  } else {
+    if (!text.blurb.trim()) fail(`${a.id}: empty Indonesian blurb`);
+    if (!text.significance.trim()) fail(`${a.id}: empty Indonesian curatorial note`);
+    if (text.blurb === a.blurb) warn(`${a.id}: Indonesian blurb is identical to the English one`);
+  }
+}
+for (const key of Object.keys(artifactTextId)) {
+  if (!ids.has(key)) fail(`Indonesian summary for unknown record: ${key}`);
+}
+
+if (idComparisonSource.length !== comparisons.length) {
+  fail(`Indonesian comparisons: ${idComparisonSource.length} pairings, expected ${comparisons.length}`);
+}
+comparisons.forEach((pair, i) => {
+  const translated = idComparisonSource[i];
+  if (!translated) return;
+  if (translated.id !== pair.id) fail(`Comparison ${i + 1}: id mismatch (${pair.id} vs ${translated.id})`);
+  if (translated.rows.length !== pair.rows.length) {
+    fail(`Comparison ${pair.id}: ${translated.rows.length} Indonesian axes, expected ${pair.rows.length}`);
+  }
+  if (translated.then.artifactId !== pair.then.artifactId) {
+    fail(`Comparison ${pair.id}: “then” side links to a different record in Indonesian`);
+  }
+  if (translated.now.artifactId !== pair.now.artifactId) {
+    fail(`Comparison ${pair.id}: “now” side links to a different record in Indonesian`);
+  }
+  if (!translated.thesis.trim()) fail(`Comparison ${pair.id}: missing Indonesian summary`);
+});
+
+// Both dictionaries must expose the same top-level sections. (Shared `Strings`
+// typing already guarantees deep parity at compile time.)
+const enSections = Object.keys(en).sort().join(",");
+const idSections = Object.keys(id).sort().join(",");
+if (enSections !== idSections) fail("UI dictionaries expose different sections");
 
 /* ---------- Behaviour smoke tests ---------- */
 const queryOnly = applyFilters(artifacts, { ...defaultFilters, query: "netscape" });

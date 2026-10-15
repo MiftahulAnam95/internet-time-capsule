@@ -1,5 +1,7 @@
 import type { CategoryId, EraId } from "@/config";
 import { categories, eras } from "@/config";
+import { artifactTextId } from "@/i18n/artifacts";
+import type { Lang } from "@/i18n/types";
 import type { Artifact } from "./types";
 import { algorithmicEraArtifacts } from "./eras/algorithmic-era";
 import { earlyWebArtifacts } from "./eras/early-web";
@@ -52,15 +54,18 @@ export const neighbours = (id: string) => {
   };
 };
 
-const matchesQuery = (a: Artifact, q: string) => {
+const matchesQuery = (a: Artifact, q: string, lang: Lang = "en") => {
   if (!q.trim()) return true;
   const needle = q.trim().toLowerCase();
+  const translated = lang === "id" ? artifactTextId[a.id] : undefined;
   const haystack = [
     a.title,
     a.blurb,
+    translated?.blurb ?? "",
     a.year,
     a.catalogId,
     a.significance,
+    translated?.significance ?? "",
     a.story.join(" "),
     ...a.impact.map((i) => i.text),
     ...a.facts.map((f) => `${f.label} ${f.value}`),
@@ -72,10 +77,10 @@ const matchesQuery = (a: Artifact, q: string) => {
     .every((word) => haystack.includes(word));
 };
 
-export const applyFilters = (list: Artifact[], f: Filters): Artifact[] => {
+export const applyFilters = (list: Artifact[], f: Filters, lang: Lang = "en"): Artifact[] => {
   const result = list.filter(
     (a) =>
-      matchesQuery(a, f.query) &&
+      matchesQuery(a, f.query, lang) &&
       (f.categories.length === 0 || f.categories.includes(a.category)) &&
       (f.eras.length === 0 || f.eras.includes(a.era))
   );

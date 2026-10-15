@@ -1,24 +1,19 @@
-import { categories, siteConfig, type CategoryId } from "@/config";
+import type { CategoryId } from "@/config";
+import { localizedCategories, localizedSite, useLanguage } from "@/i18n";
 import { archiveStats } from "@/data/artifacts";
 import { IconArrowRight, IconExternal, IconGithub } from "./icons";
+import { scrollToTop } from "@/lib/scroll";
+import { siteConfig } from "@/config";
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
   onFilterCategory: (id: CategoryId) => void;
 }
 
-const sections = [
-  { id: "explore", label: "Explore" },
-  { id: "featured", label: "Featured record" },
-  { id: "timeline", label: "Timeline" },
-  { id: "collections", label: "Collections" },
-  { id: "compare", label: "Then vs Now" },
-  { id: "discovery", label: "Random discovery" },
-  { id: "archive", label: "My Archive" },
-  { id: "about", label: "About" },
-];
-
 export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
+  const { lang, t } = useLanguage();
+  const site = localizedSite(lang);
+  const categories = localizedCategories(lang);
   const year = new Date().getFullYear();
 
   return (
@@ -36,24 +31,24 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
               Time Capsule
             </p>
             <p className="mt-5 max-w-sm text-[0.92rem] leading-relaxed text-ivory/65">
-              {siteConfig.tagline}
+              {site.tagline}
             </p>
             <p className="label mt-6 text-[9px] text-archive">
-              {siteConfig.volume} · {archiveStats.artifacts} records · {archiveStats.spanFrom}–{archiveStats.spanTo}
+              {t.footer.volumeLine(site.volume, archiveStats.artifacts, archiveStats.spanFrom, archiveStats.spanTo)}
             </p>
             <button
               type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              onClick={() => scrollToTop()}
               className="btn btn-light mt-8"
             >
-              Back to the top <IconArrowRight size={14} />
+              {t.footer.backToTop} <IconArrowRight size={14} />
             </button>
           </div>
 
-          <nav aria-label="Footer sections" className="lg:col-span-3">
-            <p className="label text-[9px] text-ivory/40">Sections</p>
+          <nav aria-label={t.footer.sectionsTitle} className="lg:col-span-3">
+            <p className="label text-[9px] text-ivory/40">{t.footer.sectionsTitle}</p>
             <ul className="mt-4 space-y-2.5">
-              {sections.map((s) => (
+              {t.footer.sectionLinks.map((s) => (
                 <li key={s.id}>
                   <button
                     type="button"
@@ -67,8 +62,8 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
             </ul>
           </nav>
 
-          <nav aria-label="Collections" className="lg:col-span-2">
-            <p className="label text-[9px] text-ivory/40">Collections</p>
+          <nav aria-label={t.footer.collectionsTitle} className="lg:col-span-2">
+            <p className="label text-[9px] text-ivory/40">{t.footer.collectionsTitle}</p>
             <ul className="mt-4 space-y-2.5">
               {categories.map((c) => (
                 <li key={c.id}>
@@ -85,7 +80,7 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
           </nav>
 
           <div className="lg:col-span-2">
-            <p className="label text-[9px] text-ivory/40">Elsewhere</p>
+            <p className="label text-[9px] text-ivory/40">{t.footer.elsewhereTitle}</p>
             <ul className="mt-4 space-y-3 text-[0.88rem]">
               <li>
                 <a
@@ -94,7 +89,7 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
                   rel="noopener noreferrer"
                   className="u-link flex items-center gap-2 text-ivory/80 hover:text-ivory"
                 >
-                  <IconGithub size={14} /> Source code
+                  <IconGithub size={14} /> {t.footer.sourceCode}
                 </a>
               </li>
               <li>
@@ -104,7 +99,7 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
                   rel="noopener noreferrer"
                   className="u-link flex items-center gap-2 text-ivory/80 hover:text-ivory"
                 >
-                  <IconExternal size={13} /> Wikimedia Commons
+                  <IconExternal size={13} /> {t.footer.wikimedia}
                 </a>
               </li>
               <li>
@@ -114,7 +109,7 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
                   rel="noopener noreferrer"
                   className="u-link flex items-center gap-2 text-ivory/80 hover:text-ivory"
                 >
-                  <IconExternal size={13} /> Wayback Machine
+                  <IconExternal size={13} /> {t.footer.wayback}
                 </a>
               </li>
               <li>
@@ -124,7 +119,7 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
                   rel="noopener noreferrer"
                   className="u-link flex items-center gap-2 text-ivory/80 hover:text-ivory"
                 >
-                  <IconExternal size={13} /> Internet history
+                  <IconExternal size={13} /> {t.footer.history}
                 </a>
               </li>
             </ul>
@@ -133,12 +128,10 @@ export function Footer({ onNavigate, onFilterCategory }: FooterProps) {
 
         <div className="flex flex-col gap-4 py-7 sm:flex-row sm:items-center sm:justify-between">
           <p className="label text-[9px] leading-relaxed text-ivory/45">
-            © {year} {siteConfig.name}. An independent curatorial project.
+            {t.footer.copyright(year, site.name)}
           </p>
           <p className="label max-w-xl text-[9px] leading-relaxed text-ivory/45">
-            Images are sourced from Wikimedia Commons and attributed on each record.
-            All trademarks belong to their owners; this archive is not affiliated with, or
-            endorsed by, any company it documents.
+            {t.footer.disclaimer}
           </p>
         </div>
       </div>

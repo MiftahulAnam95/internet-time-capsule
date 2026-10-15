@@ -1,5 +1,5 @@
-import { categoryById, eraById } from "@/config";
-import { featuredArtifact as artifact } from "@/data/artifacts";
+import { localizedCategory, localizedEra, localizeArtifact, localizeLabel, useLanguage } from "@/i18n";
+import { featuredArtifact as sourceArtifact } from "@/data/artifacts";
 import type { Bookmarks } from "@/hooks/useBookmarks";
 import { useInView } from "@/hooks/useInView";
 import { eraAccent } from "@/lib/tokens";
@@ -13,9 +13,11 @@ interface FeaturedProps {
 
 /** The wall label at the entrance: one artefact, told properly. */
 export function Featured({ onOpenArtifact, bookmarks }: FeaturedProps) {
+  const { lang, t } = useLanguage();
+  const artifact = localizeArtifact(sourceArtifact, lang);
   const { ref, inView } = useInView<HTMLDivElement>(0.12);
-  const era = eraById(artifact.era);
-  const cat = categoryById(artifact.category);
+  const era = localizedEra(artifact.era, lang);
+  const cat = localizedCategory(artifact.category, lang);
   const saved = bookmarks.has(artifact.id);
 
   return (
@@ -37,18 +39,18 @@ export function Featured({ onOpenArtifact, bookmarks }: FeaturedProps) {
                 style={{ background: eraAccent[artifact.era] }}
                 aria-hidden
               />
-              Featured acquisition
+              {t.featured.kicker}
             </span>
             <h2 className="mt-4 max-w-3xl text-[clamp(2.1rem,5vw,4rem)] leading-[0.95]">
-              The birth of the
-              <br className="hidden sm:block" /> World Wide Web
+              {t.featured.titleA}
+              <br className="hidden sm:block" /> {t.featured.titleB}
             </h2>
           </div>
           <dl className="flex flex-wrap gap-x-10 gap-y-4">
             {[
-              { k: "Period", v: artifact.year },
-              { k: "Collection", v: cat.name },
-              { k: "Accession", v: artifact.catalogId },
+              { k: t.featured.period, v: artifact.year },
+              { k: t.featured.collection, v: cat.name },
+              { k: t.featured.accession, v: artifact.catalogId },
             ].map((row) => (
               <div key={row.k}>
                 <dt className="label text-[9px] text-ivory/45">{row.k}</dt>
@@ -73,7 +75,7 @@ export function Featured({ onOpenArtifact, bookmarks }: FeaturedProps) {
             </div>
             {artifact.image && (
               <p className="mt-3 max-w-xl text-[12.5px] leading-relaxed text-ivory/60">
-                <span className="label mr-2 text-[9px] text-archive">Plate 01</span>
+                <span className="label mr-2 text-[9px] text-archive">{t.featured.plate}</span>
                 {artifact.image.caption}{" "}
                 <span className="text-ivory/40">
                   {artifact.image.credit}
@@ -102,7 +104,7 @@ export function Featured({ onOpenArtifact, bookmarks }: FeaturedProps) {
                 {artifact.significance}
               </p>
               <footer className="label mt-3 text-[9px] text-ivory/45">
-                Curatorial note · {artifact.catalogId}
+                {t.featured.curatorialNote(artifact.catalogId)}
               </footer>
             </blockquote>
 
@@ -112,7 +114,7 @@ export function Featured({ onOpenArtifact, bookmarks }: FeaturedProps) {
                 onClick={() => onOpenArtifact(artifact.id)}
                 className="btn border-paper bg-paper text-ink hover:bg-archive hover:border-archive hover:text-paper"
               >
-                <IconArchive size={14} /> Read the story <IconArrowRight size={14} />
+                <IconArchive size={14} /> {t.common.readStory} <IconArrowRight size={14} />
               </button>
               <button
                 type="button"
@@ -121,14 +123,14 @@ export function Featured({ onOpenArtifact, bookmarks }: FeaturedProps) {
                 className={`btn btn-light ${saved ? "bg-archive border-archive text-paper" : ""}`}
               >
                 <IconBookmark size={14} filled={saved} />
-                {saved ? "In my archive" : "Save to my archive"}
+                {saved ? t.featured.inArchive : t.featured.saveCta}
               </button>
             </div>
 
             <ul className="mt-10 divide-y divide-line-dark border-y border-line-dark">
               {artifact.facts.map((f) => (
                 <li key={f.label} className="flex items-baseline justify-between gap-6 py-2.5">
-                  <span className="label text-[9px] text-ivory/45">{f.label}</span>
+                  <span className="label text-[9px] text-ivory/45">{localizeLabel(f.label, lang)}</span>
                   <span className="text-right font-mono text-[0.72rem] text-ivory/85">
                     {f.value}
                   </span>

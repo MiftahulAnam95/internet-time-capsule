@@ -20,12 +20,13 @@ in the visitor's browser.
 4. [Getting started](#getting-started)
 5. [Deploying to GitHub Pages](#deploying-to-github-pages)
 6. [Configuration](#configuration)
-7. [Adding or editing an artefact](#adding-or-editing-an-artefact)
-8. [Images and licensing policy](#images-and-licensing-policy)
-9. [Manual testing checklist](#manual-testing-checklist)
-10. [Accessibility](#accessibility)
-11. [Known limitations](#known-limitations)
-12. [Validating the archive data](#validating-the-archive-data)
+7. [Language — English & Bahasa Indonesia](#language--english--bahasa-indonesia)
+8. [Adding or editing an artefact](#adding-or-editing-an-artefact)
+9. [Images and licensing policy](#images-and-licensing-policy)
+10. [Manual testing checklist](#manual-testing-checklist)
+11. [Accessibility](#accessibility)
+12. [Known limitations](#known-limitations)
+13. [Validating the archive data](#validating-the-archive-data)
 
 ---
 
@@ -91,12 +92,20 @@ random draw, counts and comparisons automatically.
 
 ```
 internet-time-capsule/
-├── index.html                  shell: meta, fonts, favicon
+├── index.html                  shell: meta, fonts, favicon, boot placeholder
+├── public/.nojekyll           serve Pages output as-is (no Jekyll)
 ├── src/
-│   ├── main.tsx                entry point
+│   ├── main.tsx                entry point + ErrorBoundary + LanguageProvider
 │   ├── App.tsx                 composition, routing, shortcuts, scroll progress
 │   ├── index.css               design system: tokens, components, motion
 │   ├── config.ts               site config + era & collection definitions
+│   ├── i18n/                   English + Bahasa Indonesia dictionaries & content
+│   │   ├── types.ts            the Strings contract both languages satisfy
+│   │   ├── en.ts / id.ts       UI strings per language
+│   │   ├── content.ts          localised site/era/collection content
+│   │   ├── comparisons.ts      localised Then vs Now pairings
+│   │   ├── artifacts.ts        localised blurbs, notes & record labels
+│   │   └── LanguageContext.tsx provider, hook, persistence
 │   ├── data/
 │   │   ├── types.ts            data contracts and the Commons URL helper
 │   │   ├── artifacts.ts        aggregation, filtering, sorting, stats
@@ -114,7 +123,8 @@ internet-time-capsule/
 │   │   ├── scroll.ts           anchor scrolling with reduced-motion support
 │   │   └── tokens.ts           era accents, plate monograms
 │   ├── components/
-│   │   ├── Header.tsx          sticky nav, active-section tracking, drawer
+│   │   ├── ErrorBoundary.tsx   branded recovery panel instead of a blank page
+│   │   ├── Header.tsx          sticky nav, language toggle, drawer
 │   │   ├── Hero.tsx            masthead, collage, year ruler, ticker
 │   │   ├── Featured.tsx        the wall label
 │   │   ├── Timeline.tsx        era tablist + wall label + catalogue index
@@ -197,6 +207,34 @@ export const siteConfig = {
 Change `github.owner` to your username and the header, About and footer links update.
 Eras and collections (`eras`, `categories`) are defined in the same file and drive the
 timeline, filters, chips and comparison labels.
+
+---
+
+## Language — English & Bahasa Indonesia
+
+The interface is fully bilingual. A **ID / EN toggle** in the header (and in the
+mobile menu) switches languages instantly; the choice is saved in `localStorage`,
+shared across tabs, and applied to `<html lang>`, the page title and the meta
+description. First-time visitors get Indonesian automatically when their browser
+language is Indonesian.
+
+Translated content lives in **`src/i18n/`**:
+
+| File | What it holds |
+| --- | --- |
+| `types.ts` | The `Strings` contract — both languages must satisfy it, so a missing key fails the build. |
+| `en.ts` / `id.ts` | Every UI string: navigation, buttons, headings, placeholders, empty states, About, footer, error panel. |
+| `content.ts` | Site tagline/intro, era titles/summaries/markers and collection names/notes. |
+| `comparisons.ts` | The six Then vs Now pairings, fully translated. |
+| `artifacts.ts` | Indonesian blurb + curatorial note for all 34 records, plus impact/fact label translations. |
+| `LanguageContext.tsx` | Provider, `useLanguage()` hook, persistence and document-shell sync. |
+
+Deliberate scope decision: the long-form record **stories, impact prose and fact
+values stay in English** (the language of their cited sources). In Indonesian mode
+the reader says so plainly, while summaries, labels and navigation are translated.
+Search covers both languages. To translate a record fully later, extend
+`artifactTextId` — `localizeArtifact` already merges overrides — and the validator
+checks parity automatically.
 
 ---
 
