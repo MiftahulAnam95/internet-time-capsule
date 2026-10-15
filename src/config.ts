@@ -11,9 +11,9 @@ export const siteConfig = {
   intro:
     "An interactive archive of the websites, technologies, games, and digital cultures that shaped our connected world.",
 
-  /** Replace with your own repository. Used in the header, About and footer. */
+  /** Repository used in the header, About and footer. */
   github: {
-    owner: "your-username",
+    owner: "MiftahulAnam95",
     repo: "internet-time-capsule",
     get url() {
       return `https://github.com/${this.owner}/${this.repo}`;
