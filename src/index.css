@@ -1,0 +1,356 @@
+@import "tailwindcss";
+
+/* ============================================================
+   INTERNET TIME CAPSULE — visual system
+   Palette: warm ivory paper, near-black ink, archive red,
+   muted gray, hairline borders. Editorial serif display type
+   against a neutral sans body and monospace archive labels.
+   ============================================================ */
+
+@theme {
+  --color-ivory: #f5f2ea;
+  --color-ivory-deep: #ece8dd;
+  --color-paper: #fbf9f4;
+  --color-ink: #191919;
+  --color-graphite: #121211;
+  --color-slate-ink: #2b2b29;
+  --color-muted: #8b8982;
+  --color-archive: #d94a38;
+  --color-archive-deep: #b23a2b;
+  --color-line: #d8d4ca;
+  --color-line-dark: #34342f;
+
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-body: "Manrope", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --ease-archive: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 92px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.6;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body.is-locked {
+    overflow: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: var(--color-archive);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-archive);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  img {
+    -webkit-user-drag: none;
+  }
+
+  /* Slim, archive-like scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 0;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* ---------- Archive labels ---------- */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* ---------- Hairline rules ---------- */
+  .rule-x {
+    height: 1px;
+    background: var(--color-line);
+  }
+  .rule-x-dark {
+    height: 1px;
+    background: var(--color-line-dark);
+  }
+
+  /* ---------- Paper grain ---------- */
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+  }
+  .grain-light::before {
+    mix-blend-mode: screen;
+    opacity: 0.22;
+  }
+
+  /* ---------- Grid paper background ---------- */
+  .grid-paper {
+    background-image: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 88px 88px;
+  }
+  .grid-paper-dark {
+    background-image: linear-gradient(to right, #22221f 1px, transparent 1px),
+      linear-gradient(to bottom, #22221f 1px, transparent 1px);
+    background-size: 88px 88px;
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.75s var(--ease-archive), transform 0.75s var(--ease-archive);
+    will-change: opacity, transform;
+  }
+  .reveal.is-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 0.8rem 1.25rem;
+    border: 1px solid var(--color-ink);
+    border-radius: 2px;
+    transition: background-color 0.28s var(--ease-archive),
+      color 0.28s var(--ease-archive), border-color 0.28s var(--ease-archive),
+      transform 0.28s var(--ease-archive);
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+  .btn-primary:hover {
+    background: var(--color-archive);
+    border-color: var(--color-archive);
+    transform: translateY(-2px);
+  }
+  .btn-ghost:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    transform: translateY(-2px);
+  }
+  .btn-light {
+    border-color: var(--color-line-dark);
+    color: var(--color-ivory);
+  }
+  .btn-light:hover {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    transform: translateY(-2px);
+  }
+
+  /* ---------- Chips ---------- */
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    color: var(--color-slate-ink);
+    background: transparent;
+    transition: all 0.24s var(--ease-archive);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+  .chip[aria-pressed="true"],
+  .chip.is-active {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-ivory);
+  }
+
+  /* ---------- Link with archive underline ---------- */
+  .u-link {
+    position: relative;
+    text-decoration: none;
+    background-image: linear-gradient(var(--color-archive), var(--color-archive));
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: left 100%;
+    transition: background-size 0.35s var(--ease-archive);
+  }
+  .u-link:hover {
+    background-size: 100% 1px;
+  }
+
+  /* ---------- Artifact plate (image frame) ---------- */
+  .plate {
+    position: relative;
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    overflow: hidden;
+  }
+  .plate-dark {
+    background: #1d1d1b;
+    border-color: var(--color-line-dark);
+  }
+
+  /* ---------- Ticker ---------- */
+  .ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker 46s linear infinite;
+  }
+  .ticker-mask:hover .ticker-track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.994);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scan-sweep {
+  animation: scan 1.7s var(--ease-archive) infinite;
+}
+@keyframes scan {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(330%);
+  }
+}
+
+@keyframes dialup {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.anim-modal {
+  animation: modal-in 0.42s var(--ease-archive) both;
+}
+.anim-fade {
+  animation: fade-in 0.32s var(--ease-archive) both;
+}
+.anim-blink {
+  animation: blink 1.4s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .ticker-track {
+    animation: none;
+  }
+}
